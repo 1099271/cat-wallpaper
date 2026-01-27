@@ -2,8 +2,9 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
-from .fal_client import generate_images
+from .fal_client import generate_images, generate_video
 from .settings import settings
 from .storage import ensure_storage_dirs, job_dir, new_job_id
 from .validation import validate_uploads
@@ -11,6 +12,12 @@ from .validation import validate_uploads
 app = FastAPI()
 ensure_storage_dirs(settings.storage_root)
 app.mount("/static", StaticFiles(directory=settings.storage_root), name="static")
+
+
+class VideoRequest(BaseModel):
+    job_id: str
+    image_url: str
+    aspect_ratio: str | None = None
 
 
 @app.post("/api/generate-image")
@@ -52,3 +59,31 @@ async def generate_image(
         image_urls.append(f"/static/images/{job_id}/{safe_name}")
 
     return {"job_id": job_id, "images": image_urls, "prompt_used": prompt_used}
+
+
+@app.post("/api/generate-video")
+async def generate_video_endpoint(payload: VideoRequest):
+    videos_dir = job_dir(settings.storage_root, "videos", payload.job_id)
+    videos_dir.mkdir(parents=True, exist_ok=True)
+
+    image_path = _path_from_static_url(payload.image_url)
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found.")
+
+    ratio = payload.aspect_ratio or "16:9"
+    try:
+        filename, content = generate_video(image_path, ratio)
+    except Exception as exc:  # pragma: no cover - external service
+        raise HTTPException(status_code=502, detail="Video generation failed.") from exc
+
+    safe_name = Path(filename).name or "video.mp4"
+    target = videos_dir / safe_name
+    target.write_bytes(content)
+    return {"job_id": payload.job_id, "video_url": f"/static/videos/{payload.job_id}/{safe_name}"}
+
+
+def _path_from_static_url(image_url: str) -> Path:
+    if image_url.startswith("/static/"):
+        relative = image_url[len("/static/") :]
+        return Path(settings.storage_root, relative)
+    return Path(image_url)

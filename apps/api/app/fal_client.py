@@ -38,3 +38,26 @@ def _extract_image_urls(result: dict) -> list[str]:
 def _download(url: str) -> bytes:
     with request.urlopen(url) as response:
         return response.read()
+
+
+def build_video_payload(image_url: str, aspect_ratio: str) -> dict:
+    return {"image_url": image_url, "aspect_ratio": aspect_ratio}
+
+
+def generate_video(image_path: Path, aspect_ratio: str) -> tuple[str, bytes]:
+    image_url = fal_client.upload_file(image_path)
+    payload = build_video_payload(image_url, aspect_ratio)
+    result = fal_client.run(settings.fal_video_model_id, payload)
+    video_url = _extract_video_url(result)
+    return ("video.mp4", _download(video_url))
+
+
+def _extract_video_url(result: dict) -> str:
+    for key in ("video", "url", "output"):
+        if key in result:
+            value = result[key]
+            if isinstance(value, str):
+                return value
+            if isinstance(value, dict) and "url" in value:
+                return str(value["url"])
+    raise ValueError("No video URL found in response.")
