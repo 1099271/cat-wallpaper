@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Iterable
 
@@ -16,3 +17,16 @@ def validate_uploads(files: Iterable[UploadFile]) -> None:
         ext = Path(file.filename or "").suffix.lower().lstrip(".")
         if ext not in ALLOWED_EXTS:
             raise HTTPException(status_code=400, detail="Invalid file type.")
+        size = _get_upload_size(file)
+        if size is not None and size > MAX_MB * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large.")
+
+
+def _get_upload_size(file: UploadFile) -> int | None:
+    try:
+        file.file.seek(0, os.SEEK_END)
+        size = file.file.tell()
+        file.file.seek(0)
+        return size
+    except Exception:
+        return None
