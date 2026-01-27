@@ -1,4 +1,6 @@
 /** @type {import("next").NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  transpilePackages: ["@cat-wallpaper/shared"],
+};
 
 export default nextConfig;
