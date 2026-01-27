@@ -3,6 +3,7 @@
 Monorepo MVP: FastAPI + Next.js to generate wallpaper images and short videos.
 
 See `docs/CONFIGURATION.md` for architecture and configuration details.
+See `docs/EXAMPLES.md` for smoke tests and curl examples.
 
 ## Requirements
 - Python 3.11+
