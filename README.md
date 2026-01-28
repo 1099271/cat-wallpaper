@@ -15,6 +15,13 @@ See `docs/EXAMPLES.md` for smoke tests and curl examples.
 pnpm install
 ```
 
+## Scripts
+```bash
+./scripts/start.sh    # start API + Web
+./scripts/stop.sh     # stop API + Web
+./scripts/restart.sh  # restart API + Web
+```
+
 ### API
 ```bash
 cd apps/api
