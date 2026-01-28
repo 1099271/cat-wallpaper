@@ -8,6 +8,50 @@ WEB_PID_FILE="$RUN_DIR/web.pid"
 
 mkdir -p "$RUN_DIR"
 
+usage() {
+  cat <<'EOF'
+Usage: ./scripts/start.sh [--api] [--web] [--all]
+
+Options:
+  --api   Start API only
+  --web   Start Web only
+  --all   Start both (default)
+EOF
+}
+
+START_API=false
+START_WEB=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --api)
+      START_API=true
+      ;;
+    --web)
+      START_WEB=true
+      ;;
+    --all)
+      START_API=true
+      START_WEB=true
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [[ "$START_API" == "false" && "$START_WEB" == "false" ]]; then
+  START_API=true
+  START_WEB=true
+fi
+
 is_running() {
   local pid_file="$1"
   if [[ -f "$pid_file" ]]; then
@@ -72,7 +116,12 @@ start_web() {
   echo "Web started (pid $(cat "$WEB_PID_FILE"))."
 }
 
-start_api
-start_web
+if [[ "$START_API" == "true" ]]; then
+  start_api
+fi
+
+if [[ "$START_WEB" == "true" ]]; then
+  start_web
+fi
 
 echo "Logs: $RUN_DIR/api.log, $RUN_DIR/web.log"

@@ -22,6 +22,13 @@ pnpm install
 ./scripts/restart.sh  # restart API + Web
 ```
 
+Examples:
+```bash
+./scripts/start.sh --api
+./scripts/stop.sh --web
+./scripts/restart.sh --all
+```
+
 ### API
 ```bash
 cd apps/api

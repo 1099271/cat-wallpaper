@@ -6,6 +6,50 @@ RUN_DIR="$ROOT_DIR/.run"
 API_PID_FILE="$RUN_DIR/api.pid"
 WEB_PID_FILE="$RUN_DIR/web.pid"
 
+usage() {
+  cat <<'EOF'
+Usage: ./scripts/stop.sh [--api] [--web] [--all]
+
+Options:
+  --api   Stop API only
+  --web   Stop Web only
+  --all   Stop both (default)
+EOF
+}
+
+STOP_API=false
+STOP_WEB=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --api)
+      STOP_API=true
+      ;;
+    --web)
+      STOP_WEB=true
+      ;;
+    --all)
+      STOP_API=true
+      STOP_WEB=true
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [[ "$STOP_API" == "false" && "$STOP_WEB" == "false" ]]; then
+  STOP_API=true
+  STOP_WEB=true
+fi
+
 stop_process() {
   local name="$1"
   local pid_file="$2"
@@ -30,5 +74,10 @@ stop_process() {
   rm -f "$pid_file"
 }
 
-stop_process "API" "$API_PID_FILE"
-stop_process "Web" "$WEB_PID_FILE"
+if [[ "$STOP_API" == "true" ]]; then
+  stop_process "API" "$API_PID_FILE"
+fi
+
+if [[ "$STOP_WEB" == "true" ]]; then
+  stop_process "Web" "$WEB_PID_FILE"
+fi
