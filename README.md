@@ -27,6 +27,7 @@ Examples:
 ./scripts/start.sh --api
 ./scripts/stop.sh --web
 ./scripts/restart.sh --all
+./scripts/start.sh --status
 ```
 
 ### API

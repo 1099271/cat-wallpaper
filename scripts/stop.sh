@@ -8,17 +8,19 @@ WEB_PID_FILE="$RUN_DIR/web.pid"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/stop.sh [--api] [--web] [--all]
+Usage: ./scripts/stop.sh [--api] [--web] [--all] [--status]
 
 Options:
   --api   Stop API only
   --web   Stop Web only
-  --all   Stop both (default)
+  --all     Stop both (default)
+  --status  Show running status and exit
 EOF
 }
 
 STOP_API=false
 STOP_WEB=false
+STATUS_ONLY=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -32,6 +34,9 @@ while [[ $# -gt 0 ]]; do
       STOP_API=true
       STOP_WEB=true
       ;;
+    --status)
+      STATUS_ONLY=true
+      ;;
     -h|--help)
       usage
       exit 0
@@ -44,6 +49,20 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
+
+if [[ "$STATUS_ONLY" == "true" ]]; then
+  if [[ -f "$API_PID_FILE" ]] && ps -p "$(cat "$API_PID_FILE")" >/dev/null 2>&1; then
+    echo "API running (pid $(cat "$API_PID_FILE"))."
+  else
+    echo "API not running."
+  fi
+  if [[ -f "$WEB_PID_FILE" ]] && ps -p "$(cat "$WEB_PID_FILE")" >/dev/null 2>&1; then
+    echo "Web running (pid $(cat "$WEB_PID_FILE"))."
+  else
+    echo "Web not running."
+  fi
+  exit 0
+fi
 
 if [[ "$STOP_API" == "false" && "$STOP_WEB" == "false" ]]; then
   STOP_API=true

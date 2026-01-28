@@ -10,17 +10,19 @@ mkdir -p "$RUN_DIR"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/start.sh [--api] [--web] [--all]
+Usage: ./scripts/start.sh [--api] [--web] [--all] [--status]
 
 Options:
   --api   Start API only
   --web   Start Web only
-  --all   Start both (default)
+  --all     Start both (default)
+  --status  Show running status and exit
 EOF
 }
 
 START_API=false
 START_WEB=false
+STATUS_ONLY=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -34,6 +36,9 @@ while [[ $# -gt 0 ]]; do
       START_API=true
       START_WEB=true
       ;;
+    --status)
+      STATUS_ONLY=true
+      ;;
     -h|--help)
       usage
       exit 0
@@ -46,6 +51,20 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
+
+if [[ "$STATUS_ONLY" == "true" ]]; then
+  if is_running "$API_PID_FILE"; then
+    echo "API running (pid $(cat "$API_PID_FILE"))."
+  else
+    echo "API not running."
+  fi
+  if is_running "$WEB_PID_FILE"; then
+    echo "Web running (pid $(cat "$WEB_PID_FILE"))."
+  else
+    echo "Web not running."
+  fi
+  exit 0
+fi
 
 if [[ "$START_API" == "false" && "$START_WEB" == "false" ]]; then
   START_API=true
