@@ -5,3 +5,5 @@ __pycache__/
 *.egg-info/
 storage/
 .run/
+node_modules/
+.env
